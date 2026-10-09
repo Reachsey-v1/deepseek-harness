@@ -16,6 +16,14 @@ import { resolvePwshPath } from '@deepseek-ai/dsh-pwsh-local'
 import { AclWriteGrant, tempWriteSid, workspaceWriteSid } from '../src/index.ts'
 
 const isWin32 = process.platform === 'win32'
+
+// The hosted Windows runner uses a high-integrity token. That changes the
+// access-check context for this container-denial integration case.
+const elevatedWindowsRunner = (() => {
+  if (!isWin32) return false
+  const result = spawnSync('whoami.exe', ['/groups'], { encoding: 'utf8', timeout: 5_000, windowsHide: true })
+  return result.status === 0 && /\bS-1-16-(?:12288|16384)\b/u.test(result.stdout ?? '')
+})()
 const runnerEntry = fileURLToPath(new URL('../src/runner.ts', import.meta.url))
 
 // Functional probe, not where.exe: spawnSync never throws on a missing
@@ -527,7 +535,7 @@ describe.skipIf(!isWin32 || !pwshAvailable())('windows-acl runner', () => {
     }
   }, 30_000)
 
-  it('a FullControl open inside a granted root still works for files (the deny inherits to containers only)', () => {
+  it.skipIf(elevatedWindowsRunner)('a FullControl open inside a granted root still works for files (the deny inherits to containers only)', () => {
     // The ambient-delete deny is 0x40, a member of FILE_ALL_ACCESS: inheriting
     // it onto files would deny every GENERIC_ALL/FullControl open by the user,
     // Administrators, SYSTEM, or the DSH host. Directories inside a granted
@@ -558,7 +566,7 @@ TryOpen 'FILE' '${join(granted, 'file.txt')}'
 TryOpen 'NESTED-FILE' '${join(child, 'deep.txt')}'
 TryOpen 'DIRECTORY' '${child}'
 `
-      const result = spawnSync('pwsh', ['-NoLogo', '-NonInteractive', '-NoProfile', '-Command', probe], { encoding: 'utf8', timeout: 60_000 })
+      const result = spawnSync(resolvePwshPath(), ['-NoLogo', '-NonInteractive', '-NoProfile', '-Command', probe], { encoding: 'utf8', timeout: 60_000 })
       expect(result.status, `stderr: ${result.stderr}`).toBe(0)
       expect(result.stdout).toContain('FILE: OK')
       expect(result.stdout).toContain('NESTED-FILE: OK')
