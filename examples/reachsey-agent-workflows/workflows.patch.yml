@@ -1,0 +1,15 @@
+# Web overlay that loads the example plugin. Replace the placeholder with the
+# absolute path of your checkout (run `pwd` at the repository root).
+#
+#   pnpm dsh web --patch ./examples/reachsey-agent-workflows/workflows.patch.yml
+- insert:
+    - id: reachsey-agent-workflows
+      name: '/absolute/path/to/deepseek-harness/examples/reachsey-agent-workflows/src/index.ts'
+      config:
+        # Every tool call is confined to this directory. Must be absolute.
+        rootDir: '/absolute/path/to/your/documents'
+        reportDir: reports
+        extensions: ['.md', '.txt']
+        maxFiles: 200
+        maxFileBytes: 1048576
+        allowOverwrite: false

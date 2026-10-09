@@ -1,0 +1,15 @@
+# Optional: declare the plugin as a child of its own Agent preset, using the
+# shape documented in packages/preset/agent-preset/README.md. This file has been
+# reviewed against that README but has not been booted in a running app.
+- insert:
+    - id: preset-reachsey-workflows
+      name: '@deepseek-ai/dsh-agent-preset'
+      config:
+        id: reachsey-workflows
+        name: Document workflows
+        description: Scan documents under one directory and write Markdown summary reports.
+        plugins:
+          - id: reachsey-agent-workflows
+            name: '/absolute/path/to/deepseek-harness/examples/reachsey-agent-workflows/src/index.ts'
+            config:
+              rootDir: '/absolute/path/to/your/documents'
