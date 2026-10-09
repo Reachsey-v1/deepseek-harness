@@ -172,7 +172,6 @@ function cell(value: string): string {
  */
 export function validateTitle(title: string): string {
   const trimmed = title.trim()
-  // oxlint-disable-next-line no-control-regex
   if (trimmed.length === 0 || trimmed.length > MAX_TITLE_LENGTH || /[\u0000-\u001f\u007f]/.test(trimmed)) {
     throw new WorkflowError('invalid-title', `The title must be 1-${MAX_TITLE_LENGTH} characters without control characters.`)
   }
