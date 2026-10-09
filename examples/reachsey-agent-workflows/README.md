@@ -1,5 +1,7 @@
 # reachsey-agent-workflows
 
+English | [中文](README.zh.md)
+
 A small example plugin for DeepSeek Harness. It registers two tools that let an agent summarize a directory of text documents and write a Markdown report, with every file access confined to one configured directory.
 
 It follows the repository's own plugin tutorials ([first plugin](../../docs/user/develop/basic/index.md), [configuration](../../docs/user/develop/basic/config.md), [tool authoring](../../docs/cookbook/adding-a-tool.md)). It is an example outside `packages/`, so it is not a workspace package and is not published.

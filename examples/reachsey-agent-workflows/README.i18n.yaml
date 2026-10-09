@@ -1,0 +1,28 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write examples/reachsey-agent-workflows/README.md
+/reachsey-agent-workflows:
+  en: ca10d84f1bc5a74d
+  zh: 8162281a82ff951e
+/reachsey-agent-workflows/tools:
+  en: 428d943c81f5dd88
+  zh: 4359ff0bc4a4c49f
+/reachsey-agent-workflows/configuration:
+  en: 2f1b02d6c6ff1647
+  zh: 5c0703c6f597b11e
+/reachsey-agent-workflows/run-it:
+  en: 591871caf5bfcccf
+  zh: b4708861e0c1d0c9
+/reachsey-agent-workflows/security-model:
+  en: e7ada446ab78ed22
+  zh: 41d312a24696994b
+/reachsey-agent-workflows/validate:
+  en: 7e60bab7cd51cf69
+  zh: f46e72911fd346fa
+/reachsey-agent-workflows/troubleshooting:
+  en: ccc1550f890e68de
+  zh: 8a2ec01ff4516d36
+/reachsey-agent-workflows/known-limitations:
+  en: fad8b0fbd1b64308
+  zh: cb6b395765ee7427
