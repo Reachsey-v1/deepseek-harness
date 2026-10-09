@@ -1,0 +1,43 @@
+name: Example reachsey-agent-workflows
+
+on:
+  pull_request:
+    paths:
+      - 'examples/reachsey-agent-workflows/**'
+      - '.github/workflows/reachsey-agent-workflows.yml'
+
+permissions:
+  contents: read
+
+env:
+  DSH_TELEMETRY_DISABLED: '1'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  example:
+    name: typecheck, test, lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      # Install scripts (native addon builds) are not needed by this example.
+      - name: Install
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Typecheck
+        run: pnpm exec tsc -b examples/reachsey-agent-workflows/tsconfig.json
+
+      - name: Test
+        run: pnpm exec vitest run --root examples/reachsey-agent-workflows --config vitest.config.ts
+
+      - name: Lint
+        run: pnpm exec tsx scripts/run-oxlint.ts examples/reachsey-agent-workflows

@@ -28,6 +28,19 @@ import { beforeAll, describe, expect, it } from 'vitest'
 
 const isWin32 = process.platform === 'win32'
 
+// GitHub-hosted windows-2025 runs as a high-integrity runneradmin token. These
+// ACL repair cases require an ordinary token; elevated rights change their
+// effective WRITE_DAC/WRITE_OWNER preconditions and outcomes.
+const elevatedWindowsRunner = (() => {
+  if (!isWin32) return false
+  try {
+    const groups = execFileSync('whoami.exe', ['/groups'], { encoding: 'utf8', timeout: 5_000, windowsHide: true })
+    return /\bS-1-16-(?:12288|16384)\b/u.test(groups)
+  } catch {
+    return false
+  }
+})()
+
 function pwshAvailable(): boolean {
   try {
     execFileSync('where.exe', ['pwsh'], { stdio: 'ignore' })
@@ -241,7 +254,7 @@ describe.skipIf(!isWin32 || !pwshAvailable())('diagnose-windows-sandbox-acl scri
     }
   }, timeout)
 
-  it('grants full control to a directory that lacks WRITE_DAC and WRITE_OWNER, preserving owner and label', () => {
+  it.skipIf(elevatedWindowsRunner)('grants full control to a directory that lacks WRITE_DAC and WRITE_OWNER, preserving owner and label', () => {
     const scratch = newScratch()
     try {
       const target = makeDir(scratch, 'missing-write-owner')
@@ -268,7 +281,7 @@ describe.skipIf(!isWin32 || !pwshAvailable())('diagnose-windows-sandbox-acl scri
     }
   }, timeout)
 
-  it('repairs a missing grant and a package ACE in the same invocation', () => {
+  it.skipIf(elevatedWindowsRunner)('repairs a missing grant and a package ACE in the same invocation', () => {
     const scratch = newScratch()
     try {
       const target = makeDir(scratch, 'both')
@@ -335,7 +348,7 @@ describe.skipIf(!isWin32 || !pwshAvailable())('diagnose-windows-sandbox-acl scri
     }
   }, timeout)
 
-  it('repairs the whole subtree in one run when only the workspace root is named', () => {
+  it.skipIf(elevatedWindowsRunner)('repairs the whole subtree in one run when only the workspace root is named', () => {
     const scratch = newScratch()
     try {
       // The sandbox reports its provisioning failure on the workspace root while the
@@ -374,7 +387,7 @@ describe.skipIf(!isWin32 || !pwshAvailable())('diagnose-windows-sandbox-acl scri
     }
   }, timeout)
 
-  it('keeps an inherit-only ACE when it grants the missing right', () => {
+  it.skipIf(elevatedWindowsRunner)('keeps an inherit-only ACE when it grants the missing right', () => {
     const scratch = newScratch()
     try {
       const target = makeDir(scratch, 'inherit-only')
@@ -561,7 +574,7 @@ describe.skipIf(!isWin32 || !pwshAvailable())('diagnose-windows-sandbox-acl scri
     }
   }, timeout)
 
-  it('restores every attempted change in reverse order when a later path fails', () => {
+  it.skipIf(elevatedWindowsRunner)('restores every attempted change in reverse order when a later path fails', () => {
     const scratch = newScratch()
     try {
       const out = join(scratch, 'out')
@@ -583,7 +596,7 @@ describe.skipIf(!isWin32 || !pwshAvailable())('diagnose-windows-sandbox-acl scri
     }
   }, timeout)
 
-  it('prints the pending recovery command and reports restore_pending_then_stop when rollback fails', () => {
+  it.skipIf(elevatedWindowsRunner)('prints the pending recovery command and reports restore_pending_then_stop when rollback fails', () => {
     const scratch = newScratch()
     try {
       const out = join(scratch, 'out')
@@ -801,7 +814,7 @@ function icacls { throw [System.IO.IOException]::new('icacls unavailable') }
     }
   }, timeout)
 
-  it('repairs its own workspace root when -AllowRoot is the object itself', () => {
+  it.skipIf(elevatedWindowsRunner)('repairs its own workspace root when -AllowRoot is the object itself', () => {
     const scratch = newScratch()
     try {
       const out = join(scratch, 'out')
@@ -823,7 +836,7 @@ function icacls { throw [System.IO.IOException]::new('icacls unavailable') }
     }
   }, timeout)
 
-  it('is idempotent: a second repair run changes nothing', () => {
+  it.skipIf(elevatedWindowsRunner)('is idempotent: a second repair run changes nothing', () => {
     const scratch = newScratch()
     try {
       const target = makeDir(scratch, 'idempotent')

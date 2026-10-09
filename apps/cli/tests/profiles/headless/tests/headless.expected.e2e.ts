@@ -584,7 +584,7 @@ describe('headless stream-json snapshots', () => {
   }, LOADER_SMOKE_TEST_TIMEOUT_MS)
 
   it('keeps provider comments alive and sends DeepSeek defaults through the one-shot app', async () => {
-    const server = await deepseekDefaultsServer()
+    const server = await deepseekDefaultsServer({ waitForTitleRequest: true })
     try {
       const result = await runLoaderSmoke({
         label: 'DeepSeek adapter defaults headless stream-json snapshot',
@@ -607,7 +607,10 @@ describe('headless stream-json snapshots', () => {
       })
 
       expect(result.stderr).toBe('')
-      expect(server.requests).toHaveLength(2)
+      const requestTokenBudgets = server.requests
+        .map(request => request.max_tokens)
+        .sort((a, b) => Number(a) - Number(b))
+      expect(requestTokenBudgets, JSON.stringify(requestTokenBudgets)).toEqual([64, 256_000])
       expect(server.paths).toEqual(['/v1/messages', '/v1/messages'])
       const agentRequest = server.requests.find(request => request.max_tokens === 256_000)
       const titleRequest = server.requests.find(request => request.max_tokens === 64)
@@ -698,7 +701,10 @@ describe('headless stream-json snapshots', () => {
       })
 
       expect(result.stderr).toBe('')
-      expect(server.requests).toHaveLength(2)
+      const requestTokenBudgets = server.requests
+        .map(request => request.max_tokens)
+        .sort((a, b) => Number(a) - Number(b))
+      expect(requestTokenBudgets, JSON.stringify(requestTokenBudgets)).toEqual([64, 1024])
       const agentRequest = server.requests.find(request => request.max_tokens === 1024)
       const titleRequest = server.requests.find(request => request.max_tokens === 64)
       expect(agentRequest).not.toHaveProperty('max_completion_tokens')

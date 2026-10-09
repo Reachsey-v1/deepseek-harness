@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "lib/types",
+    "emitDeclarationOnly": true
+  },
+  "include": ["src", "tests"],
+  "references": [
+    { "path": "../../vendor/cosmokit" },
+    { "path": "../../vendor/cordis" },
+    { "path": "../../vendor/schemastery" },
+    { "path": "../../packages/llm/llm" },
+    { "path": "../../packages/core/system-prompt" },
+    { "path": "../../packages/core/tools" }
+  ]
+}
