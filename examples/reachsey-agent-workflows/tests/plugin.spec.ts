@@ -10,8 +10,26 @@ import * as Workflows from '../src/index.ts'
 import type { Config } from '../src/index.ts'
 
 // Configuration enters as untrusted records. Parse it through the plugin schema instead of asserting through unknown.
-const parseConfig = (value: Record<string, unknown>): Config =>
-  Reflect.apply(Workflows.Config, undefined, [value])
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isConfig(value: unknown): value is Config {
+  if (!isRecord(value)) return false
+  return typeof value.rootDir === 'string'
+    && typeof value.reportDir === 'string'
+    && Array.isArray(value.extensions)
+    && value.extensions.every((extension: unknown) => typeof extension === 'string')
+    && typeof value.maxFiles === 'number'
+    && typeof value.maxFileBytes === 'number'
+    && typeof value.allowOverwrite === 'boolean'
+}
+
+const parseConfig = (value: Record<string, unknown>): Config => {
+  const parsed: unknown = Reflect.apply(Workflows.Config, undefined, [value])
+  if (!isConfig(parsed)) throw new TypeError('Plugin configuration schema returned an invalid value.')
+  return parsed
+}
 
 let root: string
 const signal = new AbortController().signal
