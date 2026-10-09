@@ -14,8 +14,6 @@ permissions:
 jobs:
   policy:
     name: Issue policy
-    # This policy is configured for the upstream organization/project only.
-    if: ${{ github.repository == 'deepseek-harness/deepseek-harness' }}
     runs-on: ubuntu-latest
     steps:
       - name: Check out trusted policy
@@ -29,7 +27,11 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          if [ -f .github/issue-management/selective-preflight.json ]; then
+          if [ "${GITHUB_REPOSITORY:-deepseek-harness/deepseek-harness}" != "deepseek-harness/deepseek-harness" ]; then
+            echo 'legacy-automated=true' >> "$GITHUB_OUTPUT"
+            echo 'needs-project=false' >> "$GITHUB_OUTPUT"
+            echo '::notice::The upstream Issue Project policy is not configured for this repository; skipping upstream Project-dependent enforcement.'
+          elif [ -f .github/issue-management/selective-preflight.json ]; then
             node .github/issue-management/policy.mjs pr-preflight
           else
             node --input-type=module <<'NODE'
