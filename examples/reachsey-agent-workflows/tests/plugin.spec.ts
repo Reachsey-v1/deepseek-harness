@@ -9,8 +9,9 @@ import ToolRuntime from '@deepseek-ai/dsh-tools'
 import * as Workflows from '../src/index.ts'
 import type { Config } from '../src/index.ts'
 
-// Cordis validates and fills defaults at load time, so tests may pass partial input.
-const partial = (value: Record<string, unknown>) => value as unknown as Config
+// Configuration enters as untrusted records. Parse it through the plugin schema instead of asserting through unknown.
+const parseConfig = (value: Record<string, unknown>): Config =>
+  Reflect.apply(Workflows.Config, undefined, [value])
 
 let root: string
 const signal = new AbortController().signal
@@ -28,7 +29,7 @@ async function mount(config: Record<string, unknown>): Promise<Context> {
   const ctx = new Context()
   await ctx.plugin(SystemPrompt)
   await ctx.plugin(ToolRuntime)
-  await ctx.plugin(Workflows, partial(config))
+  await ctx.plugin(Workflows, parseConfig(config))
   return ctx
 }
 
@@ -38,18 +39,18 @@ describe('reachsey-agent-workflows plugin', () => {
     expect(Workflows.inject).toEqual(['tools'])
     // A default export would make the Loader unwrap only `apply` and drop `inject`.
     expect('default' in Workflows).toBe(false)
-    expect(Workflows.Config(partial({ rootDir: root }))).toMatchObject({
+    expect(parseConfig({ rootDir: root })).toMatchObject({
       reportDir: 'reports', extensions: ['.md', '.txt'], maxFiles: 200, allowOverwrite: false,
     })
-    expect(() => Workflows.Config(partial({}))).toThrow()
-    expect(() => Workflows.Config(partial({ rootDir: root, maxFiles: 0 }))).toThrow()
+    expect(() => parseConfig({})).toThrow()
+    expect(() => parseConfig({ rootDir: root, maxFiles: 0 })).toThrow()
   })
 
   it('registers both tools and unregisters them when the plugin fiber is disposed', async () => {
     const ctx = new Context()
     await ctx.plugin(SystemPrompt)
     await ctx.plugin(ToolRuntime)
-    const fiber = await ctx.plugin(Workflows, partial({ rootDir: root }))
+    const fiber = await ctx.plugin(Workflows, parseConfig({ rootDir: root }))
     try {
       expect(ctx.tools.schemas().map(schema => schema.name).toSorted()).toEqual(['rw_generate_report', 'rw_scan_documents'])
       await fiber.dispose()
@@ -102,7 +103,7 @@ describe('reachsey-agent-workflows plugin', () => {
     const ctx = new Context()
     await ctx.plugin(SystemPrompt)
     await ctx.plugin(ToolRuntime)
-    await expect(ctx.plugin(Workflows, partial({ rootDir: 'relative/dir' }))).rejects.toThrow(/absolute/)
+    await expect(ctx.plugin(Workflows, parseConfig({ rootDir: 'relative/dir' }))).rejects.toThrow(/absolute/)
     await ctx.fiber.dispose()
   })
 })
