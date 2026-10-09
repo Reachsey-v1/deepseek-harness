@@ -72,7 +72,13 @@ export function apply(ctx: Context, config: Config) {
   if (!path.isAbsolute(config.rootDir)) {
     throw new Error(`${name}: rootDir must be an absolute path.`)
   }
-  const limits = { root: config.rootDir, extensions: config.extensions, maxFiles: config.maxFiles, maxFileBytes: config.maxFileBytes, excludeDir: config.reportDir }
+  const limits = {
+    root: config.rootDir,
+    extensions: config.extensions,
+    maxFiles: config.maxFiles,
+    maxFileBytes: config.maxFileBytes,
+    excludeDir: config.reportDir,
+  }
 
   ctx.tools.register(defineTool({
     name: 'rw_scan_documents',
